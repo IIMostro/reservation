@@ -1,0 +1,109 @@
+syntax = "protof3";
+package reservation;
+
+import "google/protobuf/timestamp.proto";
+
+
+message Reservation{
+    required string id = 1;
+    required string user_id = 2;
+    required ReservationType rtype = 3;
+
+    required string resource_id = 4;
+    required google.protobuf.Timestamp start_time = 5;
+    required google.protobuf.Timestamp end_time = 6;
+
+    required string notes = 7;
+
+}
+
+message ReservationRequest{
+    required Reservation reservation = 1;
+}
+
+message ReservationResponse{
+  required Reservation reservation = 1;
+}
+
+message UpdateRequest{
+  required string note = 1;
+}
+
+message UpdateResponse{
+  required Reservation reservation = 1;
+}
+
+message ConfirmRequest{
+  required string id = 1;
+}
+
+message ConfirmResponse{
+  required Reservation reservation = 1;
+}
+
+message CancelRequest{
+  required string id = 1;
+}
+
+message CancelResponse{
+  required Reservation reservation = 1;
+}
+
+message GetRequest {
+  required string id = 1;
+}
+
+message GetResponse {
+  required Reservation reservation = 1;
+}
+
+message QueryRequest{
+  optional string id = 1;
+  optional string user_id = 2;
+  optional ReservationStatus status = 3;
+  required google.protobuf.Timestamp start = 4;
+  required google.protobuf.Timestamp end = 5;
+}
+
+message ListenRequest{
+
+}
+
+message ListenResponse{
+  required int32 op = 1;
+  required Reservation reservation = 2;
+}
+
+
+service ReservationService{
+    rpc reserve(ReservationRequest) returns (ReservationResponse);
+    rpc confirm(ConfirmRequest) returns (ConfirmResponse);
+    rpc update(UpdateRequest) returns (UpdateResponse);
+    rpc cancel(CancelRequest) returns (CancelResponse);
+    rpc get(GetRequest) returns (GetResponse);
+    rpc query(QueryRequest) returns (stream Reservation);
+    // 监听一个资源
+    rpc listen(ListenRequest) returns (stream Reservation);
+}
+
+enum ReservationStatus {
+  UNKNOWN = 0;
+  PENDING = 1;
+  CONFIRMED = 2;
+  BLOCKED = 3;
+}
+
+enum ReservationUpdateType{
+  ReservationUpdateType_UNKNOWN = 0;
+  ReservationUpdateType_CREATE = 1;
+  ReservationUpdateType_UPDATE = 2;
+  ReservationUpdateType_DELETE = 3;
+}
+
+
+enum ReservationType {
+  RESERVATION_TYPE_UNKNOWN = 0;
+  RESERVATION_TYPE_SINGLE = 1;
+  RESERVATION_TYPE_RECURRING = 2;
+}
+
