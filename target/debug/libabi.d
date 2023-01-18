@@ -1,1 +1,1 @@
-/Users/li.bowei/workspaces/rust/neptune/reservation/target/debug/libabi.rlib: /Users/li.bowei/workspaces/rust/neptune/reservation/abi/src/lib.rs
+/Users/li.bowei/workspaces/rust/neptune/reservation/target/debug/libabi.rlib: /Users/li.bowei/workspaces/rust/neptune/reservation/abi/build.rs /Users/li.bowei/workspaces/rust/neptune/reservation/abi/protos /Users/li.bowei/workspaces/rust/neptune/reservation/abi/protos/reservation.proto /Users/li.bowei/workspaces/rust/neptune/reservation/abi/src/lib.rs /Users/li.bowei/workspaces/rust/neptune/reservation/abi/src/pb/mod.rs

@@ -70,7 +70,7 @@ message ListenRequest{
 }
 
 message ListenResponse{
-  int32 op = 1;
+  ReservationUpdateType op = 1;
   Reservation reservation = 2;
 }
 

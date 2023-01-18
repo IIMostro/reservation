@@ -96,7 +96,7 @@ pub struct ListenRequest {}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListenResponse {
-    #[prost(int32, tag = "1")]
+    #[prost(enumeration = "ReservationUpdateType", tag = "1")]
     pub op: i32,
     #[prost(message, optional, tag = "2")]
     pub reservation: ::core::option::Option<Reservation>,
