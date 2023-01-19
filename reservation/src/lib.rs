@@ -1,8 +1,7 @@
-mod error;
 mod manager;
 
 use async_trait::async_trait;
-pub use error::ReservationError;
+use abi::ReservationError;
 
 pub type ReservationId = String;
 
