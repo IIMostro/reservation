@@ -20,7 +20,7 @@ impl Rsvp for ReservationManager {
             .bind(status.to_string())
             .fetch_one(&self.pool)
             .await?.get(0);
-        rsvp.id  = id.to_string();
+        rsvp.id = id.to_string();
         Ok(rsvp)
     }
 
@@ -45,45 +45,53 @@ impl Rsvp for ReservationManager {
     }
 }
 
-impl ReservationManager{
+impl ReservationManager {
     pub async fn new(pool: PgPool) -> Self {
-        Self{pool}
+        Self { pool }
     }
 }
 
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use chrono::FixedOffset;
+    use abi::ReservationConflictInfo;
     use super::*;
 
     #[sqlx_database_tester::test(pool(variable = "migrated_pool", migrations = "../migrations"))]
-    async fn reservation_should_work_for_valid_windows(){
+    async fn reservation_should_work_for_valid_windows() {
         let manager = ReservationManager::new(migrated_pool.clone()).await;
         let rsvp = Reservation::new_pending("user_id",
                                             "resource_id",
                                             "note",
                                             "2022-12-25T15:00:00-0700".parse().unwrap(),
-                                            "2022-12-28T12:00:00-0700".parse().unwrap(),);
+                                            "2022-12-28T12:00:00-0700".parse().unwrap(), );
         let rsvp = manager.reserve(rsvp).await.unwrap();
         assert_ne!(rsvp.id, "");
     }
 
     #[sqlx_database_tester::test(pool(variable = "migrated_pool", migrations = "../migrations"))]
-    async fn reservation_conflict_reservation_should_reject(){
+    async fn reservation_conflict_reservation_should_reject() {
         let manager = ReservationManager::new(migrated_pool.clone()).await;
         let rsvp1 = Reservation::new_pending("alice",
-                                            "resource_id",
-                                            "note",
-                                            "2022-12-25T15:00:00-0700".parse().unwrap(),
-                                            "2022-12-28T12:00:00-0700".parse().unwrap(),);
+                                             "ocean-view-room-713",
+                                             "note",
+                                             "2022-12-25T15:00:00-0700".parse().unwrap(),
+                                             "2022-12-28T12:00:00-0700".parse().unwrap(), );
         let rsvp2 = Reservation::new_pending("allen",
-                                            "resource_id",
-                                            "note",
-                                            "2022-12-26T15:00:00-0700".parse().unwrap(),
-                                            "2022-12-30T12:00:00-0700".parse().unwrap(),);
+                                             "ocean-view-room-713",
+                                             "note",
+                                             "2022-12-26T15:00:00-0700".parse().unwrap(),
+                                             "2022-12-30T12:00:00-0700".parse().unwrap(), );
         let rsvp = manager.reserve(rsvp1).await.unwrap();
-        let rsvp1 = manager.reserve(rsvp2).await.unwrap_err();
-        println!("{:?}", rsvp1);
+        let err = manager.reserve(rsvp2).await.unwrap_err();
+        println!("{:?}", err);
+        if let abi::ReservationError::ConflictReservation(ReservationConflictInfo::Parsed(info)) = err {
+            assert_eq!(info.old.rid, "ocean-view-room-713");
+            assert_eq!(info.old.start.to_rfc3339(), "2022-12-25T22:00:00+00:00");
+            assert_eq!(info.old.end.to_rfc3339(), "2022-12-28T19:00:00+00:00");
+        } else {
+            panic!("exception conflict reservation error!")
+        }
     }
 }
