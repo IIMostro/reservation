@@ -3,6 +3,7 @@ use std::process::Command;
 fn main() {
     tonic_build::configure()
         .out_dir("src/pb")
+        // package name + 类型的名称
         .type_attribute("reservation.ReservationStatus", "#[derive(sqlx::Type)]")
         .compile(&["protos/reservation.proto"], &["protos"])
         .unwrap();

@@ -11,3 +11,8 @@ select int4range(1, 10) @> 12;
 ```sql
     CREATE EXTENSION btree_gist;
 ```
+* uuid_generate_v4使用需要创建一个extension
+```sql
+    create extension "uuid-ossp";
+```
+

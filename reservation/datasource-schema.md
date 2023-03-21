@@ -1,6 +1,7 @@
 ### 数据库
 
-数据库的设计schema
+数据库的设计schema <br />
+这里的schema具体可以看migrations
 
 ```sql
 
@@ -41,12 +42,13 @@ create table rsvp.reservation_changes
     reservation_id uuid                         not null,
     -- 数据约束在这几个单词之间
     op             rsvp.reservation_update_type not null
-)
+);
 
 -- 如果uid为空的话则查询所有的资源列表
 -- 如果rid为空的话也这么查询
 CREATE
-OR REPLACE FUNCTION rsvp.query(uid, text,rid, during: tstzrange) RETURN TABLE rsvp.reservations as $$ $$ LANGUAGE plpgsql;
+OR REPLACE FUNCTION rsvp.query(uid, text,rid, during: tstzrange) RETURNS TABLE rsvp.reservations as $$ 
+    $$ LANGUAGE plpgsql;
 CREATE
 OR REPLACE FUNCTION rsvp.reservations_trigger() returns trigger as 
     $$

@@ -68,4 +68,22 @@ mod tests{
         let rsvp = manager.reserve(rsvp).await.unwrap();
         assert_ne!(rsvp.id, "");
     }
+
+    #[sqlx_database_tester::test(pool(variable = "migrated_pool", migrations = "../migrations"))]
+    async fn reservation_conflict_reservation_should_reject(){
+        let manager = ReservationManager::new(migrated_pool.clone()).await;
+        let rsvp1 = Reservation::new_pending("alice",
+                                            "resource_id",
+                                            "note",
+                                            "2022-12-25T15:00:00-0700".parse().unwrap(),
+                                            "2022-12-28T12:00:00-0700".parse().unwrap(),);
+        let rsvp2 = Reservation::new_pending("allen",
+                                            "resource_id",
+                                            "note",
+                                            "2022-12-26T15:00:00-0700".parse().unwrap(),
+                                            "2022-12-30T12:00:00-0700".parse().unwrap(),);
+        let rsvp = manager.reserve(rsvp1).await.unwrap();
+        let rsvp1 = manager.reserve(rsvp2).await.unwrap_err();
+        println!("{:?}", rsvp1);
+    }
 }

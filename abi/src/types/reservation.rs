@@ -1,12 +1,18 @@
 use std::ops::Range;
 
+use crate::{
+    convert_to_timestamp, convert_to_utc_time, Reservation, ReservationError, ReservationStatus,
+};
 use chrono::{DateTime, FixedOffset, Utc};
-use crate::{convert_to_timestamp, convert_to_utc_time, Reservation, ReservationError, ReservationStatus};
 
 impl Reservation {
-    pub fn new_pending(uid: &str, rid: &str, note: &str,
-                       start_time: DateTime<FixedOffset>,
-                       end_time: DateTime<FixedOffset>) -> Self {
+    pub fn new_pending(
+        uid: &str,
+        rid: &str,
+        note: &str,
+        start_time: DateTime<FixedOffset>,
+        end_time: DateTime<FixedOffset>,
+    ) -> Self {
         Self {
             id: "".to_string(),
             user_id: uid.to_string(),
@@ -24,9 +30,10 @@ impl Reservation {
         }
 
         if self.resource_id.is_empty() {
-            return Err(ReservationError::InvalidResourceId(self.resource_id.clone()));
+            return Err(ReservationError::InvalidResourceId(
+                self.resource_id.clone(),
+            ));
         }
-
 
         if self.start_time.is_none() || self.end_time.is_none() {
             return Err(ReservationError::InvalidTime);
