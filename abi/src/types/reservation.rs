@@ -1,9 +1,14 @@
+use std::collections::Bound;
 use std::ops::Range;
 
 use crate::{
     convert_to_timestamp, convert_to_utc_time, Reservation, ReservationError, ReservationStatus,
 };
 use chrono::{DateTime, FixedOffset, Utc};
+use sqlx::{Error, FromRow, Postgres, Row};
+use sqlx::encode::IsNull::No;
+use sqlx::postgres::PgRow;
+use sqlx::postgres::types::PgRange;
 
 impl Reservation {
     pub fn new_pending(
@@ -55,5 +60,46 @@ impl Reservation {
             start: start_time,
             end: end_time,
         }
+    }
+}
+
+// 从pgrow转化为reservation
+impl FromRow<'_, PgRow> for Reservation{
+
+    fn from_row(row: &PgRow) -> Result<Self, Error> {
+        let range: PgRange<DateTime<Utc>> = row.get("timespan");
+        let range: NaiveRange<DateTime<Utc>> = range.into();
+        assert!(range.start.is_some());
+        let start = range.start.unwrap();
+        assert!(range.end.is_some());
+        let end = range.end.unwrap();
+        Ok(Self{
+            id: row.get("id"),
+            user_id: row.get("user_id"),
+            resource_id: row.get("resource_id"),
+            start_time: Some(convert_to_timestamp(start)),
+            end_time: Some(convert_to_timestamp(end)),
+            notes: row.get("note"),
+            status: row.get("status")
+        })
+    }
+}
+
+struct NaiveRange<T>{
+    start: Option<T>,
+    end: Option<T>
+}
+
+impl <T> From<PgRange<T>> for NaiveRange<T> {
+
+    fn from(value: PgRange<T>) -> Self {
+        let function = |b: Bound<T>| match b {
+            Bound::Included(v) => Some(v),
+            Bound::Excluded(v) => Some(v),
+            Bound::Unbounded => None
+        };
+        let start = function(value.start);
+        let end = function(value.end);
+        Self{ start, end }
     }
 }

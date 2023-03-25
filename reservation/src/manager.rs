@@ -25,7 +25,10 @@ impl Rsvp for ReservationManager {
     }
 
     async fn change_status(&self, id: ReservationId) -> Result<Reservation, ReservationError> {
-        todo!()
+        let rsvp: Reservation = sqlx::query_as(
+            "update rsvp.reservations set status = 'confirmed' where id = $1 and status = 'pending' RETURNING *"
+        ).bind(id).fetch_one(&self.pool).await?;
+        Ok(rsvp)
     }
 
     async fn update_note(&self, id: ReservationId, note: String) -> Result<Reservation, ReservationError> {
@@ -54,6 +57,7 @@ impl ReservationManager {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::read;
     use chrono::FixedOffset;
     use abi::ReservationConflictInfo;
     use super::*;
@@ -93,5 +97,20 @@ mod tests {
         } else {
             panic!("exception conflict reservation error!")
         }
+    }
+
+    #[sqlx_database_tester::test(pool(variable = "migrated_pool", migrations = "../migrations"))]
+    async fn reserve_change_status_should_work() {
+        let manager = ReservationManager::new(migrated_pool.clone()).await;
+        let rsvp: Reservation = abi::Reservation::new_pending(
+            "neptune",
+            "ocean-view-room-713",
+            "note",
+            "2023-01-25T15:00:00-0700".parse().unwrap(),
+            "2023-02-28T15:00:00-0700".parse().unwrap(),
+        );
+        let rsvp = manager.reserve(rsvp).await.unwrap();
+        let rsvp = manager.change_status(rsvp.id).await.unwrap();
+        assert_eq!(!rsvp.status, abi::ReservationStatus::Confirmed as i32);
     }
 }
